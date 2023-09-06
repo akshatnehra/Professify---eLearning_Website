@@ -115,3 +115,65 @@ exports.getAllCourses = async (req, res) => {
         });
     }
 }
+
+// Get course details
+exports.getCourseDetails = async (req, res) => {
+    try {
+        // Get courseId from request body
+        const { courseId } = req.body;
+
+        // Validate if fields are empty
+        if (!courseId) {
+            console.log('Please enter all fields');
+            return res.status(400).json({
+                success: false,
+                msg: 'Please enter all fields'
+            });
+        }
+
+        // Check if course exists
+        const course = await Course.findById(courseId).populate({
+            path: 'courseInstructor',
+            populate: {
+                path: 'additionalDetails'
+            }
+        })
+        .populate({
+            path: 'courseContent',
+            populate: {
+                path: 'subSections',
+            }
+        })
+        .populate({
+            path: 'tag',
+            populate: {
+                path: 'courses'
+            }
+        })
+        .populate('category')
+        .populate('ratingAndReviews')
+        .exec();
+
+        if (!course) {
+            console.log('Course not found');
+            return res.status(400).json({
+                success: false,
+                msg: 'Course not found'
+            });
+        }
+
+        // Return success message
+        return res.status(200).json({
+            success: true,
+            msg: 'Course fetched successfully',
+            course
+        });
+    } catch (error) {
+        console.log(error);
+        console.log('Error in getCourseDetails');
+        return res.status(500).json({
+            success: false,
+            msg: 'Internal Server Error'
+        });
+    }
+}
