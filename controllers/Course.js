@@ -1,7 +1,7 @@
 const Course = require('../models/Course');
 const User = require('../models/User');
 const Tag = require('../models/Tag');
-const { uploadImage } = require('../utils/imageUpload');
+const { uploadImage } = require('../utils/imageUploader');
 
 // Create course
 exports.createCourse = async (req, res) => {
@@ -32,7 +32,7 @@ exports.createCourse = async (req, res) => {
         }
         
         // Check if tag exists
-        const tagDetails = await Tag.findBtId(tag);
+        const tagDetails = await Tag.findById(tag);
         if (!tagDetails) {
             console.log('Tag not found');
             return res.status(400).json({
@@ -52,7 +52,8 @@ exports.createCourse = async (req, res) => {
             coursePrice,
             tag,
             thumbnail: thumbnailUrl,
-            courseInstructor: req.user.id
+            courseInstructor: req.user.id,
+            sections: []
         });
         await course.save();
 
@@ -139,7 +140,7 @@ exports.getCourseDetails = async (req, res) => {
             }
         })
         .populate({
-            path: 'courseContent',
+            path: 'sections',
             populate: {
                 path: 'subSections',
             }
@@ -150,8 +151,8 @@ exports.getCourseDetails = async (req, res) => {
                 path: 'courses'
             }
         })
-        .populate('category')
         .populate('ratingAndReviews')
+        // .populate('sections')
         .exec();
 
         if (!course) {

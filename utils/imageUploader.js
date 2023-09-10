@@ -20,14 +20,10 @@ exports.uploadImage = async (file, folder, height, quality) => {
         }
         options.resource_type = 'auto';
 
-        const result = await cloudinary.uploader.upload(file, options);
+        const result = await cloudinary.uploader.upload(file.tempFilePath, options);
         return result.secure_url; 
     } catch (error) {
         console.log(error);
         console.log('Error in uploadImage');
-        return res.status(500).json({
-            success: false,
-            msg: 'Internal Server Error'
-        });
     }
 }

@@ -96,11 +96,11 @@ exports.updateSection = async (req, res) => {
 // Delete section
 exports.deleteSection = async (req, res) => {
     try {
-        // Extract sectionId from request params
-        const { sectionId } = req.params;
+        // Extract sectionId from request 
+        const { sectionId, courseId } = req.body;
 
         // Validate if fields are empty
-        if (!sectionId) {
+        if (!sectionId || !courseId) {
             console.log('Please enter all fields');
             return res.status(400).json({
                 success: false,
@@ -118,6 +118,20 @@ exports.deleteSection = async (req, res) => {
             });
         }
 
+        // Check if course exists
+        const course = await Course.findById(courseId);
+        if (!course) {
+            console.log('Course not found');
+            return res.status(400).json({
+                success: false,
+                msg: 'Course not found'
+            });
+        }
+
+        // Delete section from course's sections
+        course.sections.pull(sectionId);
+        await course.save();
+
         // Delete section
         await Section.findByIdAndDelete(sectionId);
 
@@ -126,7 +140,7 @@ exports.deleteSection = async (req, res) => {
             success: true,
             msg: 'Section deleted successfully'
         });
-        
+
     } catch (error) {
         console.log(error);
         console.log('Error in deleteSection');
